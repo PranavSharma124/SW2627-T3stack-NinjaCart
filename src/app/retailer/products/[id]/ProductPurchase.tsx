@@ -1,30 +1,47 @@
 "use client";
 
 import { useState } from "react";
+import { useCart } from "@/context/cartContext";
 
 type ProductPurchaseProps = {
   productId: string;
+  name: string;
   price: string;
+  imageUrl: string;
   availableQuantity: number;
 };
 
 export default function ProductPurchase({
   productId,
+  name,
   price,
+  imageUrl,
   availableQuantity,
 }: ProductPurchaseProps) {
   const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
 
   const increaseQuantity = () => {
     if (quantity < availableQuantity) {
-      setQuantity(quantity + 1);
+      setQuantity((current) => current + 1);
     }
   };
 
   const decreaseQuantity = () => {
     if (quantity > 1) {
-      setQuantity(quantity - 1);
+      setQuantity((current) => current - 1);
     }
+  };
+
+  const handleAddToCart = () => {
+    addToCart({
+      productId,
+      name,
+      price,
+      imageUrl,
+      quantity,
+      availableQuantity,
+    });
   };
 
   const totalPrice = Number(price) * quantity;
@@ -61,6 +78,7 @@ export default function ProductPurchase({
 
       <button
         type="button"
+        onClick={handleAddToCart}
         className="mt-6 w-full rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:opacity-90"
       >
         Add to Cart
