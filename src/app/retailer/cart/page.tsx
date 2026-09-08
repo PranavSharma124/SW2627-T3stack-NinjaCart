@@ -3,14 +3,50 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/cartContext";
+import { createOrder } from "@/actions/order/create-order";
+import { useEffect, useState } from "react";
 
 export default function CartPage() {
-  const { items, removeFromCart, updateQuantity } = useCart();
+  const { items, removeFromCart, updateQuantity, refreshStock, clearCart } =
+    useCart();
+
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    refreshStock();
+  }, [refreshStock]);
 
   const totalPrice = items.reduce(
     (total, item) => total + Number(item.price) * item.quantity,
     0,
   );
+
+  const handlePlaceOrder = async () => {
+    setError("");
+    setIsPlacingOrder(true);
+
+    try {
+      const order = await createOrder(
+        items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+      );
+
+      clearCart();
+
+      window.location.href = `/retailer/orders/${order.id}`;
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Something went wrong while placing your order.");
+      }
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -49,6 +85,12 @@ export default function CartPage() {
           Review the products you want to purchase.
         </p>
       </div>
+
+      {error && (
+        <div className="mt-6 rounded-lg border border-destructive p-4 text-sm text-destructive">
+          {error}
+        </div>
+      )}
 
       <div className="mt-10 grid gap-8 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
@@ -140,14 +182,17 @@ export default function CartPage() {
 
           <div className="flex justify-between">
             <span className="font-semibold">Total</span>
+
             <span className="text-xl font-bold">₹{totalPrice.toFixed(2)}</span>
           </div>
 
           <button
             type="button"
-            className="mt-6 w-full rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:opacity-90"
+            onClick={handlePlaceOrder}
+            disabled={isPlacingOrder}
+            className="mt-6 w-full rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Proceed to Checkout
+            {isPlacingOrder ? "Placing Order..." : "Proceed to Checkout"}
           </button>
         </div>
       </div>
