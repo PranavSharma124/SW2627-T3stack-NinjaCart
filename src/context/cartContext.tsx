@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { getCartProducts } from "@/actions/product/get-cart-products";
 
 export type CartItem = {
   productId: string;
@@ -17,6 +25,7 @@ type CartContextType = {
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  refreshStock: () => Promise<void>;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -47,7 +56,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addToCart = (item: CartItem) => {
     setItems((currentItems) => {
       const existingItem = currentItems.find(
-        (cartItem) => cartItem.productId === item.productId
+        (cartItem) => cartItem.productId === item.productId,
       );
 
       if (existingItem) {
@@ -55,9 +64,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           cartItem.productId === item.productId
             ? {
                 ...cartItem,
-                quantity: cartItem.quantity + item.quantity,
+                quantity: Math.min(
+                  cartItem.availableQuantity,
+                  cartItem.quantity + item.quantity,
+                ),
               }
-            : cartItem
+            : cartItem,
         );
       }
 
@@ -67,7 +79,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const removeFromCart = (productId: string) => {
     setItems((currentItems) =>
-      currentItems.filter((item) => item.productId !== productId)
+      currentItems.filter((item) => item.productId !== productId),
     );
   };
 
@@ -75,11 +87,43 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((currentItems) =>
       currentItems.map((item) =>
         item.productId === productId
-          ? { ...item, quantity }
-          : item
-      )
+          ? {
+              ...item,
+              quantity: Math.min(item.availableQuantity, Math.max(1, quantity)),
+            }
+          : item,
+      ),
     );
   };
+
+  const refreshStock = useCallback(async () => {
+    if (items.length === 0) {
+      return;
+    }
+
+    const productIds = items.map((item) => item.productId);
+    const products = await getCartProducts(productIds);
+
+    setItems((currentItems) =>
+      currentItems
+        .map((item) => {
+          const product = products.find(
+            (product) => product.id === item.productId,
+          );
+
+          if (!product || product.quantity <= 0) {
+            return null;
+          }
+
+          return {
+            ...item,
+            availableQuantity: product.quantity,
+            quantity: Math.min(item.quantity, product.quantity),
+          };
+        })
+        .filter((item): item is CartItem => item !== null),
+    );
+  }, [items]);
 
   const clearCart = () => {
     setItems([]);
@@ -93,6 +137,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         removeFromCart,
         updateQuantity,
         clearCart,
+        refreshStock,
       }}
     >
       {children}

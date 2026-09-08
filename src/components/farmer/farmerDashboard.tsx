@@ -32,8 +32,8 @@ export default async function FarmerDashboard() {
                 key={product.id}
                 title={product.name}
                 description={product.description}
-                price={Number(product.price)}
-                soldQuantity={0}
+                price={product.price}
+                soldQuantity={product.soldQuantity}
                 remainingQuantity={product.quantity}
                 image={product.imageURL}
                 href={`/farmer/products/${product.id}`}
