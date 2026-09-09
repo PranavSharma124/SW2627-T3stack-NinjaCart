@@ -44,9 +44,23 @@ export async function createOrder(items: OrderItemInput[]) {
         throw new Error("One of the products no longer exists.");
       }
 
-      if (product.quantity < item.quantity) {
+      const updatedProduct = await tx.product.updateMany({
+        where: {
+          id: item.productId,
+          quantity: {
+            gte: item.quantity,
+          },
+        },
+        data: {
+          quantity: {
+            decrement: item.quantity,
+          },
+        },
+      });
+
+      if (updatedProduct.count !== 1) {
         throw new Error(
-          `${product.name} only has ${product.quantity} kg available.`,
+          `${product.name} does not have enough stock available.`,
         );
       }
 
@@ -60,17 +74,6 @@ export async function createOrder(items: OrderItemInput[]) {
         priceAtPurchase: product.price,
         quantity: item.quantity,
         subtotal,
-      });
-
-      await tx.product.update({
-        where: {
-          id: product.id,
-        },
-        data: {
-          quantity: {
-            decrement: item.quantity,
-          },
-        },
       });
     }
 
