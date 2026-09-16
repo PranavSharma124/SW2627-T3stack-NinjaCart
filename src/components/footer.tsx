@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 
 export default function Footer() {
+  const { data: session } = authClient.useSession();
+
   return (
     <footer className="border-t px-6 py-8">
       <div className="text-center">
@@ -9,16 +14,18 @@ export default function Footer() {
         <p className="mt-2">Connecting farmers with retailers.</p>
       </div>
 
-      <div className="mt-6 text-center">
-        <h3 className="font-bold">Quick Links</h3>
+      {!session && (
+        <div className="mt-6 text-center">
+          <h3 className="font-bold">Quick Links</h3>
 
-        <div className="mt-3 flex flex-wrap justify-center gap-6">
-          <Link href="/">Home</Link>
-          <Link href="/about">About</Link>
-          <Link href="/products">Products</Link>
-          <Link href="/contact">Contact</Link>
+          <div className="mt-3 flex flex-wrap justify-center gap-6">
+            <Link href="/">Home</Link>
+            <a href="#why-ninjacart">Why NinjaCart</a>
+            <a href="#working">How it works</a>
+            <Link href="/contact">Contact</Link>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="mt-8 text-center">
         <h3 className="font-bold">Have feedback?</h3>

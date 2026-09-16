@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "../ui/button";
+import {  } from "lucide-react";
 
 export default function CTA() {
   return (
