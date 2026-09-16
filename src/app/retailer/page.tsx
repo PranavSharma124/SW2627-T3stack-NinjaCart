@@ -3,6 +3,7 @@ import { GetProduct } from "@/actions/product/get-products";
 
 export default async function RetailerDashboard() {
   const products = await GetProduct();
+
   return (
     <main className="mx-auto w-full max-w-7xl px-6 py-10">
       <div className="border-b pb-6">
@@ -17,23 +18,22 @@ export default async function RetailerDashboard() {
 
       <section className="mt-10">
         <h2 className="text-xl font-semibold">Quick Overview</h2>
-        <div className="mt-5 grid gap-5 md:grid-cols-3">
+
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
           <div className="rounded-xl border bg-card p-6 shadow-sm transition hover:shadow-md">
             <p className="text-sm text-muted-foreground">Available Products</p>
+
             <h3 className="mt-3 text-3xl font-bold">{products.length}</h3>
           </div>
 
           <div className="rounded-xl border bg-card p-6 shadow-sm transition hover:shadow-md">
-            <p className="text-sm text-muted-foreground">Active Orders</p>
-            <h3 className="mt-3 text-3xl font-bold">0</h3>
-          </div>
-
-          <div className="rounded-xl border bg-card p-6 shadow-sm transition hover:shadow-md">
             <p className="text-sm text-muted-foreground">Cart Items</p>
+
             <h3 className="mt-3 text-3xl font-bold">0</h3>
           </div>
         </div>
       </section>
+
       <section className="mt-10">
         <div>
           <h2 className="text-xl font-semibold">Available Products</h2>
@@ -64,15 +64,6 @@ export default async function RetailerDashboard() {
             ))}
           </div>
         )}
-      </section>
-      <section className="mt-10">
-        <h2 className="text-xl font-semibold">Recent Activity</h2>
-
-        <div className="mt-5 rounded-xl border bg-card p-6">
-          <p className="text-sm text-muted-foreground">
-            Your recent orders and activity will appear here.
-          </p>
-        </div>
       </section>
     </main>
   );
